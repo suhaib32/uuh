@@ -1,5 +1,6 @@
-import { Hono } from "@hono/hono";
-import postgres from "https://deno.land/x/postgresjs@v3.4.4/mod.js"; // <-- updated import path
+import { Hono } from "https://deno.land/x/hono@4.6.5/mod.ts"; 
+import postgres from "https://deno.land/x/postgresjs@v3.4.4/mod.js"; 
+
 
 const BANNED_WORDS = [
   "delete", "update", "insert", "drop", "alter", "create",
