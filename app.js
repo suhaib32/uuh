@@ -1,58 +1,24 @@
-import { Hono } from "https://deno.land/x/hono@4.6.5/mod.ts"; 
-import postgres from "https://deno.land/x/postgresjs@v3.4.4/mod.js"; 
-
-
-const BANNED_WORDS = [
-  "delete", "update", "insert", "drop", "alter", "create",
-  "truncate", "replace", "merge", "grant", "revoke",
-  "transaction", "commit", "rollback", "savepoint", "lock",
-  "execute", "call", "do", "set", "comment"
-];
-
-const query = async (queryText) => {
-  for (const word of BANNED_WORDS) {
-    if (queryText.toLowerCase().includes(word)) {
-      throw new Error(`You cannot ${word} data`);
-    }
-  }
-
-  const sql = postgres({
-    host: Deno.env.get("PGHOST") ?? "database.cs.aalto.fi",
-    port: +(Deno.env.get("PGPORT") ?? 54321),
-    database: Deno.env.get("PGDATABASE") ?? "database7a350a6b",
-    username: Deno.env.get("PGUSER") ?? "user7a350a6b",
-    password: Deno.env.get("PGPASSWORD") ?? "supersecret",
-    max: 2,
-    max_lifetime: 10,
-  });
-
-  return await sql.unsafe(queryText);
-};
+import { Hono } from "@hono/hono";
+import { query } from "./db.js";
 
 const app = new Hono();
 
-app.get("/*", (c) => {
-  return c.html(`
-    <html>
-      <head>
-        <title>Hello, world!</title>
-      </head>
-      <body>
-        <h1>Hello, world!</h1>
-        <p>Send a POST request with a JSON query to execute it.</p>
-        <p>Example: { "query": "SELECT 1 + 1 AS sum" }</p>
-      </body>
-    </html>
-  `);
-});
+app.get("/*", (c) => c.html(`
+  <html>
+    <body>
+      <h1>SQL Query Service</h1>
+      <p>POST JSON with {"query": "SELECT..."}</p>
+    </body>
+  </html>
+`));
 
 app.post("/*", async (c) => {
   try {
     const body = await c.req.json();
     const result = await query(body.query);
-    return c.json({ result });  // <-- wraps the result
-  } catch (err) {
-    return c.json({ error: err.message }, 400);
+    return c.json({ result }); 
+  } catch (error) {
+    return c.json({ error: error.message }, 400);
   }
 });
 
