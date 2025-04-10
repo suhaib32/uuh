@@ -1,6 +1,5 @@
 import { Hono } from "@hono/hono";
-import postgres from "postgres";
-
+import postgres from "https://deno.land/x/postgresjs@v3.4.4/mod.js"; // <-- updated import path
 
 const BANNED_WORDS = [
   "delete", "update", "insert", "drop", "alter", "create",
@@ -8,7 +7,6 @@ const BANNED_WORDS = [
   "transaction", "commit", "rollback", "savepoint", "lock",
   "execute", "call", "do", "set", "comment"
 ];
-
 
 const query = async (queryText) => {
   for (const word of BANNED_WORDS) {
@@ -51,7 +49,7 @@ app.post("/*", async (c) => {
   try {
     const body = await c.req.json();
     const result = await query(body.query);
-    return c.json({ result });  
+    return c.json({ result });  // <-- wraps the result
   } catch (err) {
     return c.json({ error: err.message }, 400);
   }
